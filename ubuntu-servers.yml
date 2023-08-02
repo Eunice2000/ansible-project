@@ -1,0 +1,16 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Apache/Nginx
+      package:
+        name: "{{ web_server_package }}"
+        state: present
+      vars:
+        web_server_package: "nginx"  # Change to "apache2" if using Apache
+    - name: Start and enable web server
+      service:
+        name: "{{ web_server_service }}"
+        state: started
+        enabled: yes
+      vars:
+        web_server_service: "nginx"  # Change to "apache2" if using Apache

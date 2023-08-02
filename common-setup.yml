@@ -1,0 +1,57 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update package cache
+      package_facts:
+        manager: auto
+
+    - name: Upgrade all packages
+      package:
+        name: "*"
+        state: latest
+
+    - name: Install essential utilities
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - vim
+        - unzip
+        - curl
+
+    # - name: Check UFW status
+    #   command: "ufw status"
+    #   ignore_errors: yes
+    #   register: ufw_status
+
+    # - name: Enable UFW if it's inactive
+    #   when: ufw_status.rc != 0
+    #   command: "sudo ufw enable"
+    #   changed_when: true
+    #   become: true
+    - name: Enable ufw service
+      service:
+        name: ufw
+        state: started
+        enabled: yes
+
+    - name: Enable ufw
+      firewalld:
+        state: enabled
+
+    - name: Configure firewall
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - 80
+        - 443
+        - 22
+      notify:
+        - Restart UFW
+
+  handlers:
+    - name: Restart UFW
+      service:
+        name: ufw
+        state: restarted

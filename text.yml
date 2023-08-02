@@ -1,0 +1,25 @@
+- name: Configure EC2 instance
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache (Ubuntu) or yum (Amazon Linux)
+      apt: update_cache=yes cache_valid_time=3600
+      when: ansible_os_family == 'Debian'
+      become: yes
+      become_method: sudo
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == 'Debian'
+      become: yes
+      become_method: sudo
+
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+      when: ansible_os_family == 'RedHat'
+      become: yes
+      become_method: sudo

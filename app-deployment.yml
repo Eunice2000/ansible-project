@@ -1,0 +1,39 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Clone application code from GitHub repository
+      git:
+        repo: "https://github.com/Eunice2000/Shielding-Students.git"
+        dest: "/var/www/html/Shielding-Students"
+        version: master  # Replace with the branch or tag you want to deploy (e.g., "main" or "master")
+
+    - name: Remove default index.html in /var/www/html
+      file:
+        path: "/var/www/html/index.html"
+        state: absent
+      #become_user: www-data  # Assuming Nginx runs as 'www-data' user, adjust as needed
+
+    - name: Move index.html to /var/www/html
+      command: "mv /var/www/html/Shielding-Students/index.html /var/www/html/index.html"
+      #become_user: www-data  # Assuming Nginx runs as 'www-data' user, adjust as needed
+
+    - name: Configure web server for the application
+      template:
+        src: "/home/eunice/aansible/app_vhost.conf"
+        dest: "/etc/nginx/sites-available/app_vhost.conf"
+      notify:
+        - Restart Nginx
+
+    - name: Enable the application virtual host
+      file:
+        src: "/home/eunice/aansible/app_vhost.conf"
+        dest: "/etc/nginx/sites-enabled/app_vhost.conf"
+        state: link
+      notify:
+        - Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
